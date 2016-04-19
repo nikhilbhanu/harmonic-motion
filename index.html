@@ -129,8 +129,8 @@
 				var sound3 = new THREE.PositionalAudio( listener );
 				var oscillator = listener.context.createOscillator();
 				oscillator.type = 'sine';
-				oscillator.frequency.value = 651;
-				
+				oscillator.frequency.value = 105;
+
 				oscillator.start(0);
 				sound3.setNodeSource(oscillator);
 				sound3.setRefDistance( 20 );
@@ -285,15 +285,16 @@
 				material_sphere2.emissive.b = analyser2.getData()[ 8 ] / 256;
 				material_sphere3.emissive.b = analyser3.getData()[ 8 ] / 256;
 
-				camera.position.x = Math.cos( timer ) * 100;
-				camera.position.y = Math.sin( timer ) * 10;
+				camera.position.x = -Math.cos( timer ) * 100;
+				camera.position.y = Math.sin( timer ) * 100;
 				camera.position.z = Math.sin( timer ) * 100;
 				camera.lookAt( scene.position );
 
 				for ( var i = 0, il = spheres.length; i < il; i ++ ) {
 					var sphere = spheres[ i ];
-					sphere.position.x = 50 * Math.cos( timer + i );
-					sphere.position.y = 50 * Math.sin( timer + i * 1.1 );
+					sphere.position.x = 100 * Math.cos( timer + i );
+					sphere.position.y = 100 * Math.sin( timer + i * 1.1 );
+					sphere.position.z = -100 * Math.cos( timer + i );
 				}
 
 				renderer.render( scene, camera );
