@@ -85,7 +85,7 @@
 				light.position.set( 0, 0.5, 1 ).normalize();
 				scene.add( light );
 
-				var sphere = new THREE.SphereGeometry( 20, 32, 16 );
+				var sphere = new THREE.SphereGeometry( 10, 16, 8 );
 
 				material_sphere1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, shading: THREE.FlatShading, shininess: 0 } );
 				material_sphere2 = new THREE.MeshPhongMaterial( { color: 0xff2200, shading: THREE.FlatShading, shininess: 0 } );
@@ -101,6 +101,7 @@
 				sound1.load( 'sounds/ambience.mp3' );
 				sound1.setRefDistance( 20 );
 				sound1.autoplay = true;
+				sound1.setLoop(5);
 				mesh1.add( sound1 );
 				spheres.push( mesh1 );
 
@@ -114,6 +115,7 @@
 				sound2.load( 'sounds/piano.mp3' );
 				sound2.setRefDistance( 20 );
 				sound2.autoplay = true;
+				sound2.setLoop(5);
 				mesh2.add( sound2 );
 				spheres.push( mesh2 );
 
@@ -127,7 +129,8 @@
 				var sound3 = new THREE.PositionalAudio( listener );
 				var oscillator = listener.context.createOscillator();
 				oscillator.type = 'sine';
-				oscillator.frequency.value = 144;
+				oscillator.frequency.value = 651;
+				
 				oscillator.start(0);
 				sound3.setNodeSource(oscillator);
 				sound3.setRefDistance( 20 );
@@ -282,10 +285,10 @@
 				material_sphere2.emissive.b = analyser2.getData()[ 8 ] / 256;
 				material_sphere3.emissive.b = analyser3.getData()[ 8 ] / 256;
 
-				// camera.position.x = Math.cos( timer ) * 100;
-				// camera.position.y = Math.sin( timer ) * 10;
-				// camera.position.z = Math.sin( timer ) * 100;
-				// camera.lookAt( scene.position );
+				camera.position.x = Math.cos( timer ) * 100;
+				camera.position.y = Math.sin( timer ) * 10;
+				camera.position.z = Math.sin( timer ) * 100;
+				camera.lookAt( scene.position );
 
 				for ( var i = 0, il = spheres.length; i < il; i ++ ) {
 					var sphere = spheres[ i ];
@@ -293,8 +296,8 @@
 					sphere.position.y = 50 * Math.sin( timer + i * 1.1 );
 				}
 
-				// renderer.render( scene, camera );
-				effect.render(scene, camera);
+				renderer.render( scene, camera );
+				// effect.render(scene, camera);
 
 			}
 
