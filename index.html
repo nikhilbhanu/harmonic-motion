@@ -1,9 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 	<head>
-		<title>3D SoundScape</title>
+		<title>Harmonic Motion - 3D SoundScapes</title>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link rel='stylesheet' href='http://fonts.googleapis.com/css?family=Roboto:400,500,700,400italic'>
+		<link rel="stylesheet" href="node_modules/angular-material/angular-material.css"/>
+		<link rel="stylesheet" href="css/app.css"/>
+		<script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
+		<script type="text/javascript" src="node_modules/angular/angular.js"></script>
+		<script type="text/javascript" src="node_modules/angular-animate/angular-animate.js"></script>
+		<script type="text/javascript" src="node_modules/angular-aria/angular-aria.js"></script>
+		<script type="text/javascript" src="node_modules/angular-material/angular-material.js"></script>
+		<script type="text/javascript" src="node_modules/nexusui/dist/nexusUI.js"></script>
+		<script type="text/javascript" src="node_modules/three/three.min.js"></script>
+		<script type="text/javascript" src="node_modules/tone/build/Tone.min.js"></script>
+		<script type="text/javascript" src="lib/FirstPersonControls.js"></script>
+		<script type="text/javascript" src="lib/Detector.js"></script>
+		<script type="text/javascript" src="lib/StereoEffect.js"></script>
+		<!-- <script src="js/DeviceOrientationControls.js"></script> -->
+		
 		<style>
 			body {
 				background-color: #000000;
@@ -27,278 +43,91 @@
 				padding: 5px;
 				z-index:100;
 			}
+
+			#container {
+				position: relative;
+				width: 100%;
+				height: 100%;
+			}
 		</style>
 	</head>
-	<body>
+	<body ng-app="harmonicMotion" layout="column" ng-controller="ObjectController" ng-cloak>
+		<md-toolbar layout="row">
+			<h1>Harmonic Motion - 3D SoundScapes</h1>
+		</md-toolbar>
+		<div flex layout="row">
+			<md-sidenav md-is-locked-open="$mdMedia('gt-sm')" md-component-id="left" class="md-whiteframe-z2" >
+				<md-list>
+					<md-list-item> <!-- ng-repeat="it in ul.users"> -->
+						<md-button ng-class="{'selected' : it === ul.selected }">
+							<!-- <md-icon md-svg-icon="{{it.avatar}}" class="avatar"></md-icon>
+							{{it.name}} -->
+						</md-button>					
+					</md-list-item>
+				</md-list>
+			</md-sidenav>
 
+			<md-content flex id="content">
+				<div id="container"></div>
+				<md-bottom-sheet class="md-list md-has-header">
+		  <md-grid-list md-cols="3" md-row-height="fit" style="height: 400px;">
+			  <md-grid-tile>
+			  	<canvas nx="matrix" style="width:350px;height:350px;margin:10px auto 0px"></canvas>
+			  </md-grid-tile>
+			  <md-grid-tile>
+				<canvas nx="position" style="width:350px;height:350px;margin:10px auto"></canvas>
+			  </md-grid-tile>
+			  <md-grid-tile >
+			  	<canvas nx="slider" style="width:100px;height:350px;margin:10px auto"></canvas>
+			  	<canvas nx="toggle" style="width:50px;height:50px;margin:10px auto"></canvas>
+			  </md-grid-tile>
+		  </md-grid-list>
+		  
+		  <style>
 
-		<div id="container"></div>
+			body {
+				background-color:#111;
+				color:#0be;
+				font-family:"Open Sans";
+				letter-spacing:1px;
+				font-weight:400;
+				font-size:10pt;
+				padding:10px;
+			}
 
-		<script src="lib/three.min.js"></script>
+			.nx {
+				display:block;
+			}
 
-		<script src="js/FirstPersonControls.js"></script>
+			.note {
+				width:700px;
+				margin:0 auto;
+				padding:10px 2px 0px;
+				box-sizing:border-box;
+			}
 
-		<script src="js/Detector.js"></script>
-
-		<script src="lib/dat.gui.min.js"></script>
-
-        <script src="js/StereoEffect.js"></script>
-	    <script src="js/DeviceOrientationControls.js"></script>
-
-		<script>
-
-			if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
-
-			var container;
-			var camera, controls, scene, renderer;
-			var light, pointLight;
-
-			var spheres = [];
-			// var mouseX = 0, mouseY = 0;
-			// var windowHalfX = window.innerWidth / 2;
-			// var windowHalfY = window.innerHeight / 2;
-			var mesh;
-			var material_sphere1, material_sphere2;
-
-			var analyser1, analyser2, analyser3;
-
-			var clock = new THREE.Clock();
-			// document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-			init();
-			animate();
-
-			function init() {
-
-				container = document.getElementById( 'container' );
-
-				camera = new THREE.PerspectiveCamera( 50, window.innerWidth / window.innerHeight, 1, 10000 );
-				camera.position.set( 0, 25, 0 );
-
-				var listener = new THREE.AudioListener();
-				camera.add( listener );
-
-
-				scene = new THREE.Scene();
-				scene.fog = new THREE.FogExp2( 0x000000, 0.0025 );
-
-				light = new THREE.DirectionalLight( 0xffffff );
-				light.position.set( 0, 0.5, 1 ).normalize();
-				scene.add( light );
-
-				var sphere = new THREE.SphereGeometry( 20, 32, 16 );
-
-				material_sphere1 = new THREE.MeshPhongMaterial( { color: 0xffaa00, shading: THREE.FlatShading, shininess: 0 } );
-				material_sphere2 = new THREE.MeshPhongMaterial( { color: 0xff2200, shading: THREE.FlatShading, shininess: 0 } );
-				material_sphere3 = new THREE.MeshPhongMaterial( { color: 0x6622aa, shading: THREE.FlatShading, shininess: 0 } );
-
-				// sound spheres
-
-				var mesh1 = new THREE.Mesh( sphere, material_sphere1 );
-				mesh1.position.set( -250, 30, 0 );
-				scene.add( mesh1 );
-
-				var sound1 = new THREE.PositionalAudio( listener );
-				sound1.load( 'sounds/ambience.mp3' );
-				sound1.setRefDistance( 20 );
-				sound1.autoplay = true;
-				mesh1.add( sound1 );
-				spheres.push( mesh1 );
-
-				//
-
-				var mesh2 = new THREE.Mesh( sphere, material_sphere2 );
-				mesh2.position.set( 250, 30, 0 );
-				scene.add( mesh2 );
-
-				var sound2 = new THREE.PositionalAudio( listener );
-				sound2.load( 'sounds/piano.mp3' );
-				sound2.setRefDistance( 20 );
-				sound2.autoplay = true;
-				mesh2.add( sound2 );
-				spheres.push( mesh2 );
-
-				//
-
-
-				var mesh3 = new THREE.Mesh( sphere, material_sphere3 );
-				mesh3.position.set( 0, 30, -250 );
-				scene.add( mesh3 );
-
-				var sound3 = new THREE.PositionalAudio( listener );
-				var oscillator = listener.context.createOscillator();
-				oscillator.type = 'sine';
-				oscillator.frequency.value = 144;
-				oscillator.start(0);
-				sound3.setNodeSource(oscillator);
-				sound3.setRefDistance( 20 );
-				sound3.setVolume(0.5);
-				mesh3.add(sound3);
-				spheres.push( mesh3 );
-
-				// analysers
-
-				analyser1 = new THREE.AudioAnalyser( sound1, 32 );
-				analyser2 = new THREE.AudioAnalyser( sound2, 32 );
-				analyser3 = new THREE.AudioAnalyser( sound3, 32 );
-
-				// global ambient audio
-
-				// var sound4 = new THREE.Audio( listener );
-				// sound4.load( 'sounds/Project_Utopia.ogg' );
-				// sound4.autoplay = true;
-				// sound4.setLoop(true);
-				// sound4.setVolume(0.5);
-
-				// ground
-
-				var helper = new THREE.GridHelper( 500, 10 );
-				helper.color1.setHex( 0x444444 );
-				helper.color2.setHex( 0x444444 );
-				helper.position.y = 0.1;
-				scene.add( helper );
-
-				//
-    			var SoundControls = function() {
-					   this.master = listener.getMasterVolume();
-					   this.firstSphere =  sound1.getVolume();
-					   this.secondSphere =  sound2.getVolume();
-					   this.thirdSphere = sound3.getVolume();
-					   // this.Ambient =  sound4.getVolume();
-				};
-				var GeneratorControls = function() {
-					   this.frequency = oscillator.frequency.value;
-					   this.wavetype = oscillator.type;
-				}
-      			var gui = new dat.GUI();
-				var soundControls = new SoundControls();
-				var generatorControls = new GeneratorControls();
-				var volumeFolder = gui.addFolder('sound volume');
-				var generatorFolder = gui.addFolder('sound generator');
-				volumeFolder.add(soundControls, 'master').min(0.0).max(1.0).step(0.01).onChange(function() {
-					listener.setMasterVolume(soundControls.master);
-				});
-				volumeFolder.add(soundControls, 'firstSphere').min(0.0).max(1.0).step(0.01).onChange(function() {
-					sound1.setVolume(soundControls.firstSphere);
-				});
-				volumeFolder.add(soundControls, 'secondSphere').min(0.0).max(1.0).step(0.01).onChange(function() {
-					sound2.setVolume(soundControls.secondSphere);
-				});
-
-				volumeFolder.add(soundControls, 'thirdSphere').min(0.0).max(1.0).step(0.01).onChange(function() {
-					sound3.setVolume(soundControls.thirdSphere);
-				});
-				// volumeFolder.add(soundControls, 'Ambient').min(0.0).max(1.0).step(0.01).onChange(function() {
-				// 	sound4.setVolume(soundControls.Ambient);
-				// });
-				volumeFolder.open();
-				generatorFolder.add(generatorControls, 'frequency').min(50.0).max(5000.0).step(1.0).onChange(function() {
-					oscillator.frequency.value = generatorControls.frequency;
-				});
-				generatorFolder.add(generatorControls, 'wavetype', ['sine', 'square', 'sawtooth', 'triangle']).onChange(function() {
-					oscillator.type = generatorControls.wavetype;
-				});
-				generatorFolder.open();
-
-
-
-
-				renderer = new THREE.WebGLRenderer( { antialias: true } );
-				renderer.setPixelRatio( window.devicePixelRatio );
-				renderer.setSize( window.innerWidth, window.innerHeight );
-				container.innerHTML = "";
-				container.appendChild( renderer.domElement );
-				effect = new THREE.StereoEffect( renderer );
-				effect.setSize( window.innerWidth, window.innerHeight );
-
-				//
-				// controls = new THREE.FirstPersonControls( camera, renderer.domElement );
-
-				// Our preferred controls via DeviceOrientation
-		        function setOrientationControls(e) {
-		          if (!e.alpha) {
-		            return;
-		          }
-
-		          controls = new THREE.DeviceOrientationControls(camera, true);
-		          controls.connect();
-		          controls.update();
-
-		          element.addEventListener('click', fullscreen, false);
-
-		          window.removeEventListener('deviceorientation', setOrientationControls, true);
-		        }
-		        window.addEventListener('deviceorientation', setOrientationControls, true);
-
-
-				// controls.movementSpeed = 70;
-				// controls.lookSpeed = 0.05;
-				// controls.noFly = true;
-				// controls.lookVertical = false;
-
-
-
-				window.addEventListener( 'resize', onWindowResize, false );
+			a {
+				color:#0be;
 
 			}
 
-			function onWindowResize() {
-
-				camera.aspect = window.innerWidth / window.innerHeight;
-				camera.updateProjectionMatrix();
-
-				renderer.setSize( window.innerWidth, window.innerHeight );
-
-				controls.handleResize();
-
-			}
-
-			// function onDocumentMouseMove( event ) {
-			// 	mouseX = ( event.clientX - windowHalfX ) * 10;
-			// 	mouseY = ( event.clientY - windowHalfY ) * 10;
-			// }
-
-			function animate() {
-
-				requestAnimationFrame( animate );
-				// controls.update();
-				render();
-
-			}
+		  </style>
 
 
-			function render() {
+					<!-- <md-subheader>
+						Controls 
+					</md-subheader>
 
-				var delta = clock.getDelta();
-				var timer = Date.now() * 0.0002;
+					<div id="matrix1">
+						<canvas nx="keyboard" style="width:800px;height:300px"></canvas>
+					</div> -->
 
-				// camera.position.x += ( mouseX - camera.position.x ) * .05;
-				// camera.position.y += ( - mouseY - camera.position.y ) * .05;
-				// camera.lookAt( scene.position );
-
-
-				// controls.update( delta );
-
-				material_sphere1.emissive.b = analyser1.getData()[ 8 ] / 256;
-				material_sphere2.emissive.b = analyser2.getData()[ 8 ] / 256;
-				material_sphere3.emissive.b = analyser3.getData()[ 8 ] / 256;
-
-				// camera.position.x = Math.cos( timer ) * 100;
-				// camera.position.y = Math.sin( timer ) * 10;
-				// camera.position.z = Math.sin( timer ) * 100;
-				// camera.lookAt( scene.position );
-
-				for ( var i = 0, il = spheres.length; i < il; i ++ ) {
-					var sphere = spheres[ i ];
-					sphere.position.x = 50 * Math.cos( timer + i );
-					sphere.position.y = 50 * Math.sin( timer + i * 1.1 );
-				}
-
-				// renderer.render( scene, camera );
-				effect.render(scene, camera);
-
-			}
-
-		</script>
-
+				</md-bottom-sheet>
+			</md-content>
+		</div>
+		<script type="text/javascript" src="js/app.js"></script>
+		<script type="text/javascript" src="js/Objects.js"></script>
+		<script type="text/javascript" src="js/ObjectController.js"></script>
+		<script type="text/javascript" src="js/MainController.js"></script>
 	</body>
 </html>

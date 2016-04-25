@@ -1,0 +1,19 @@
+{
+  "name": "harmonic-motion",
+  "private": true,
+  "version": "0.0.1",
+  "description": "Spatial Synth",
+  "repository": "https://github.com/nikhilbhanu/harmonic-motion",
+  "license": "MIT",
+  "dependencies": {
+    "angular": "latest",
+    "angular-animate": "latest",
+    "angular-aria": "latest",
+    "angular-material": "latest",
+    "angular-messages": "latest",
+    "jquery": "^2.2.3",
+    "nexusui": "^1.0.8",
+    "three": "latest",
+    "tone": "latest"
+  }
+}
